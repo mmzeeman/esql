@@ -1,0 +1,12 @@
+{application, esql,
+ [
+  {description, "erlang sql database connection"},
+  {vsn, "1"},
+  {modules, [esql]},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {env, []}
+ ]}.
