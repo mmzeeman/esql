@@ -7,7 +7,7 @@
 
 -export([behaviour_info/1]).
 
--export([open/2, close/1, run/2, run/3, execute/2, execute/3, commit/1, rollback/1, tables/1, describe_table/2, column_names/2]).
+-export([open/2, close/1, transaction/2, run/2, run/3, execute/2, execute/3, commit/1, rollback/1, tables/1, describe_table/2, column_names/2, call/2, call/3]).
 
 -include("esql.hrl").
 
@@ -70,4 +70,23 @@ execute(Sql, Connection) ->
 execute(Sql, Params, #connection{driver=Driver, connection_data=Data}) ->
     Driver:execute(Sql, Params, Data).
 
+%% @doc Support for driver specific extensions.
+call(Function, Connection) ->
+    call(Function, [], Connection).
+
+call(Function, Args, #connection{driver=Driver, connection_data=Data}) ->
+    apply(Driver, Function, Args ++ [Data]).
+
+%% @doc 
+%% 
+transaction(F, Connection) ->
+    try 
+	F(Connection)  
+    catch 
+	E ->
+	    rollback(Connection),
+	    throw(E)
+    after 
+	commit(Connection)
+    end.
 
