@@ -81,12 +81,12 @@ call(Function, Args, #connection{driver=Driver, connection_data=Data}) ->
 %% 
 transaction(F, Connection) ->
     try 
-	F(Connection)  
+	R = F(Connection),
+	ok = commit(Connection),
+	R
     catch 
-	E ->
-	    rollback(Connection),
-	    throw(E)
-    after 
-	commit(Connection)
+	Error ->
+	    ok = rollback(Connection),
+	    throw(Error)
     end.
 
