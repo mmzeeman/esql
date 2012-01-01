@@ -7,19 +7,21 @@
 
 -export([behaviour_info/1]).
 
--export([open/2, close/1, transaction/2, run/2, run/3, execute/2, execute/3, commit/1, rollback/1, tables/1, describe_table/2, column_names/2, call/2, call/3]).
+-export([open/2, close/1, 
+	 transaction/2, 
+	 run/2, run/3, 
+	 execute/2, execute/3, 
+	 start_transaction/1, commit/1, rollback/1, 
+	 tables/1, describe_table/2, column_names/2, 
+	 call/2, call/3]).
 
 -include("esql.hrl").
 
 behaviour_info(callbacks) ->
-    [{open, 1},
-     {close, 1},
-     {commit, 1},
-     {rollback, 1},
-     {run, 3},
-     {execute, 3},
-     {tables, 1},
-     {describe_table, 2}];
+    [{open, 1}, {close, 1},
+     {start_transaction, 1}, {commit, 1}, {rollback, 1},
+     {run, 3}, {execute, 3},
+     {tables, 1}, {describe_table, 2}];
 behaviour_info(_Other) ->
     undefined.
 
@@ -35,6 +37,10 @@ open(Driver, Args) ->
 %%
 close(#connection{driver=Driver, connection_data=Data}) ->
     Driver:close(Data).
+
+%% @doc Start a transaction
+start_transaction(#connection{driver=Driver, connection_data=Data}) ->
+    Driver:start_transaction(Data).
 
 %% @doc Commit all changes
 commit(#connection{driver=Driver, connection_data=Data}) ->
@@ -81,12 +87,22 @@ call(Function, Args, #connection{driver=Driver, connection_data=Data}) ->
 %% 
 transaction(F, Connection) ->
     try 
+	throw_error(fun start_transaction/1, Connection),
 	R = F(Connection),
-	ok = commit(Connection),
-	R
+	throw_error(fun commit/1, Connection),
+	{ok, R}
     catch 
-	Error ->
-	    ok = rollback(Connection),
+	_:Error ->
+	    throw_error(fun rollback/1, Connection),
+	    {rollback, Error}
+    end.
+
+throw_error(F, Connection) ->
+    case apply(F, [Connection]) of
+	ok ->
+	    ok;
+	{error, _} = Error ->
 	    throw(Error)
     end.
 
+    

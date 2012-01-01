@@ -6,7 +6,11 @@
 -include_lib("esql/include/esql.hrl").
 
 % esql callbacks
--export([open/1,  close/1, commit/1, rollback/1, describe_table/2, tables/1, run/3, execute/3, info/1]).
+-export([open/1,  close/1, 
+	 start_transaction/1, commit/1, rollback/1, 
+	 describe_table/2, tables/1, 
+	 run/3, execute/3, 
+	 info/1]).
 
 -behaviour(esql).
 
@@ -29,6 +33,10 @@ connection_loop(#state{calls=Calls}=State) ->
 
 close(Pid) ->
     Pid ! stop,
+    ok.
+
+start_transaction(Pid) ->
+    Pid ! start_transaction,
     ok.
 
 commit(Pid) ->
