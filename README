@@ -4,7 +4,7 @@ Erlang Sql Database Connection
 
 Currently available drivers 
 
-esql_sqlite3 
+  esql_sqlite3 -- Driver for esqlite
 
-esql_pgsql
+  esql_pgsql -- Driver for pgsql
 
