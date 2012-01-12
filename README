@@ -2,4 +2,9 @@ ESQL
 
 Erlang Sql Database Connection
 
+Currently available drivers 
+
+esql_sqlite3 
+
+esql_pgsql
 
