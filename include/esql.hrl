@@ -17,4 +17,13 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 
+% @doc The connection record, 'driver' is the module responsible the
+% real database connection, 'data' holds the information needed by the
+% driver.
+-record(esql_connection, {driver, data}).
+
+% @doc The column info contains: 'name' an atom containing the name of
+% the column, 'type' the sql type of the column, 'default' the default
+% value, 'notnull' is true when the column does not allow nulls, and
+% 'pk' is set to true when the column is a primary key.
 -record(esql_column_info, {name, type, default, notnull, pk}).

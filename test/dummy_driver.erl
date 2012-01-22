@@ -22,10 +22,16 @@
 -include_lib("esql/include/esql.hrl").
 
 % esql callbacks
--export([open/1,  close/1, 
-	 start_transaction/1, commit/1, rollback/1, 
-	 describe_table/2, tables/1, 
-	 run/3, execute/3, 
+-export([open/1,  
+	 close/1, 
+	 start_transaction/1, 
+	 commit/1, 
+	 rollback/1, 
+	 describe_table/2, 
+	 tables/1, 
+	 run/3, 
+	 execute/3, 
+	 execute/4,
 	 info/1]).
 
 -behaviour(esql).
@@ -70,6 +76,10 @@ describe_table(_Table, _Pid) ->
     undefined.
 
 execute(Query, Args, Pid) ->
+    Pid ! {execute, Query, Args},
+    ok.
+
+execute(Query, Args, ReceiverPid, Pid) ->
     Pid ! {execute, Query, Args},
     ok.
 

@@ -29,47 +29,52 @@
 	 tables/1, describe_table/2, column_names/2, 
 	 call/2, call/3]).
 
+
 -include("esql.hrl").
 
 behaviour_info(callbacks) ->
-    [{open, 1}, {close, 1},
-     {start_transaction, 1}, {commit, 1}, {rollback, 1},
-     {run, 3}, {execute, 3},
-     {tables, 1}, {describe_table, 2}];
+    [{open, 1}, 
+     {close, 1},
+     {start_transaction, 1}, 
+     {commit, 1}, 
+     {rollback, 1},
+     {run, 3}, 
+     {execute, 3},
+     {execute, 4},
+     {tables, 1}, 
+     {describe_table, 2}];
 behaviour_info(_Other) ->
     undefined.
-
--record(connection, {driver, connection_data}).
 
 %% @doc Open a connection to a new database
 %%
 open(Driver, Args) ->
-    {ok, ConnectionData} = Driver:open(Args),
-    {ok, #connection{driver=Driver, connection_data=ConnectionData}}.
+    {ok, Data} = Driver:open(Args),
+    {ok, #esql_connection{driver=Driver, data=Data}}.
 
 %% @doc Close a database connection.
 %%
-close(#connection{driver=Driver, connection_data=Data}) ->
+close(#esql_connection{driver=Driver, data=Data}) ->
     Driver:close(Data).
 
 %% @doc Start a transaction
-start_transaction(#connection{driver=Driver, connection_data=Data}) ->
+start_transaction(#esql_connection{driver=Driver, data=Data}) ->
     Driver:start_transaction(Data).
 
 %% @doc Commit all changes
-commit(#connection{driver=Driver, connection_data=Data}) ->
+commit(#esql_connection{driver=Driver, data=Data}) ->
     Driver:commit(Data).
 
 %% @doc Rollback all changes
-rollback(#connection{driver=Driver, connection_data=Data}) ->
+rollback(#esql_connection{driver=Driver, data=Data}) ->
     Driver:rollback(Data).
 
 %% @doc Return a list with tablenames...
-tables(#connection{driver=Driver, connection_data=Data}) ->
+tables(#esql_connection{driver=Driver, data=Data}) ->
     Driver:tables(Data).
 
 %% @doc 
-describe_table(TableName, #connection{driver=Driver, connection_data=Data}) ->
+describe_table(TableName, #esql_connection{driver=Driver, data=Data}) ->
     Driver:describe_table(TableName, Data).
 
 %% @doc
@@ -80,21 +85,29 @@ column_names(TableName, Connection) ->
 run(Sql, Connection) -> 
     run(Sql, [], Connection).
 
-run(Sql, Params, #connection{driver=Driver, connection_data=Data}) ->
+run(Sql, Params, #esql_connection{driver=Driver, data=Data}) ->
     Driver:run(Sql, Params, Data).
 
 %% @doc Execute the statement, return the result
 execute(Sql, Connection) ->
     execute(Sql, [], Connection).
 
-execute(Sql, Params, #connection{driver=Driver, connection_data=Data}) ->
+execute(Sql, Params, #esql_connection{driver=Driver, data=Data}) ->
     Driver:execute(Sql, Params, Data).
+
+%% @doc Execute the statement, and return the rows, one by one to the receiver.
+%% Testing if this is a good api for asynchronous returning query results.
+%% Returns {ok, Ref}
+%% Receiver, pid
+%% start... -> more , row -> more, row -> more, row, end...
+execute(Sql, Params, Receiver, #esql_connection{driver=Driver, data=Data}) ->
+    Driver:execute(Sql, Params, Receiver, Data).
 
 %% @doc Support for driver specific extensions.
 call(Function, Connection) ->
     call(Function, [], Connection).
 
-call(Function, Args, #connection{driver=Driver, connection_data=Data}) ->
+call(Function, Args, #esql_connection{driver=Driver, data=Data}) ->
     apply(Driver, Function, Args ++ [Data]).
 
 %% @doc 
