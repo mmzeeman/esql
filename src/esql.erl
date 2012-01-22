@@ -24,7 +24,7 @@
 -export([open/2, close/1, 
 	 transaction/2, 
 	 run/2, run/3, 
-	 execute/2, execute/3, 
+	 execute/2, execute/3, execute/4,
 	 start_transaction/1, commit/1, rollback/1, 
 	 tables/1, describe_table/2, column_names/2, 
 	 call/2, call/3]).
