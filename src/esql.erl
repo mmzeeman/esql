@@ -25,10 +25,11 @@
 	 transaction/2, 
 	 run/2, run/3, 
 	 execute/2, execute/3, 
+         execute/4,
+         step/1, 
 	 start_transaction/1, commit/1, rollback/1, 
 	 tables/1, describe_table/2, column_names/2, 
 	 call/2, call/3]).
-
 
 -include("esql.hrl").
 
@@ -102,6 +103,20 @@ execute(Sql, Params, #esql_connection{driver=Driver, data=Data}) ->
 %% start... -> more , row -> more, row -> more, row, end...
 execute(Sql, Params, Receiver, #esql_connection{driver=Driver, data=Data}) ->
     Driver:execute(Sql, Params, Receiver, Data).
+
+%% @doc Retrieve the next answer.
+%%
+step(Ref) when is_pid(Ref) ->
+    receive 
+        {Ref, What, Item} when What =:= row; What =:= column_names; What =:= error->
+            Ref ! continue,
+            {What, Item};
+        {Ref, done} ->
+            done;
+        Something ->
+            {error, unexpected_answer, Something}
+    end.
+        
 
 %% @doc Support for driver specific extensions.
 call(Function, Connection) ->
