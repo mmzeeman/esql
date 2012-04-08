@@ -47,6 +47,7 @@ behaviour_info(callbacks) ->
 behaviour_info(_Other) ->
     undefined.
 
+
 %% @doc Open a connection to a new database
 %%
 open(Driver, Args) ->

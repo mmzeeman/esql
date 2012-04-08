@@ -20,7 +20,6 @@
 -module(esql_pool).
 
 -export([create_pool/3, delete_pool/1]).
-
 -export([get_connection/1, return_connection/2]).
 
 %% Work in progress.
@@ -33,10 +32,10 @@ create_pool(Name, Size, Options) ->
 delete_pool(Name) ->
     esql_pool_sup:delete_pool(Name).
 
-% @doc
+% @doc Get a database connection.
 get_connection(PoolName) ->
-    poolboy:checkout(PoolName),
+    poolboy:checkout(PoolName).
 
-% @doc
+% @doc And return it.
 return_connection(Worker, PoolName) ->
     poolboy:checkin(PoolName, Worker).

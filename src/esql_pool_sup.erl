@@ -19,7 +19,7 @@
 %% 
 %%
 
--module(esql_pool).
+-module(esql_pool_sup).
 
 -behaviour(supervisor).
 
@@ -28,8 +28,7 @@
 
 -export([init/1]).
 
-%% Work in progress.
-
+% Start the supervisor.
 start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
@@ -49,18 +48,7 @@ delete_pool(PoolName) ->
     supervisor:terminate_child(?MODULE, PoolName),
     supervisor:delete_child(?MODULE, PoolName).  
 
-% @doc Initialize.
+% @doc Initialize an empty supervisor waiting for new pools.
 init([]) ->
-    RestartStrategy = one_for_one,
-    MaxRestarts = 10,
-    MaxSecondsBetweenRestarts = 10,
+    {ok, {{one_for_one, 10, 10}, []}}.
 
-    SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
-
-    Restart = permanent,
-    Shutdown = 5000,
-    Type = worker,
-
-    PoolSpecs = [].
-
-    {ok, {SupFlags, PoolSpecs}}.

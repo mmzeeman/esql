@@ -44,6 +44,7 @@ init(Opts) ->
 
 % @doc ...
 handle_call({test}, _From, #state{esql_connection=Conn}=State) ->
+    Conn,
     {reply, ok, State};
 handle_call(Message, _From, State) ->
     {stop, {unknown_call, Message}, State}.

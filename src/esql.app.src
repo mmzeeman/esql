@@ -2,12 +2,9 @@
  [
   {description, "Erlang sql database framework"},
   {vsn, "1"},
-  {modules, [esql, esql_pool, esql_worker]},
+  {mod, {esql_app, []}},
+  {modules, [esql_app, esql, esql_pool, esql_pool_sup, esql_worker]},
   {registered, []},
-  {applications, [
-                  kernel,
-                  stdlib,
-                  poolboy
-                 ]},
+  {applications, [kernel, stdlib]},
   {env, []}
  ]}.

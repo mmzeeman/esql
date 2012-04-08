@@ -66,8 +66,8 @@ transaction_error_test() ->
     
     ok.
 
-    
-		
-    
+application_test() ->
+    ?assertEqual(ok, application:start(esql)),
+    ?assertEqual(ok, application:stop(esql)).
     
 	
