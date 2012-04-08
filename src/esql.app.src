@@ -1,8 +1,8 @@
 {application, esql,
  [
-  {description, "erlang sql database connection"},
+  {description, "Erlang sql database framework"},
   {vsn, "1"},
-  {modules, [esql, esql_worker]},
+  {modules, [esql, esql_pool, esql_worker]},
   {registered, []},
   {applications, [
                   kernel,
