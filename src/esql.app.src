@@ -2,11 +2,12 @@
  [
   {description, "erlang sql database connection"},
   {vsn, "1"},
-  {modules, [esql]},
+  {modules, [esql, esql_worker]},
   {registered, []},
   {applications, [
                   kernel,
-                  stdlib
+                  stdlib,
+                  poolboy
                  ]},
   {env, []}
  ]}.
