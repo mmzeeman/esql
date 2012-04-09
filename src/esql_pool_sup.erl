@@ -34,7 +34,7 @@ start_link() ->
 
 % @doc Create a new connection pool
 create_pool(PoolName, Size, Options) ->
-    PoolSpec = {PoolName, {poolboy, start_link, [[{name, {global, PoolName}},
+    PoolSpec = {PoolName, {poolboy, start_link, [[{name, {local, PoolName}},
                                                   {worker_module, esql_worker},
                                                   {size, Size},
                                                   {max_overflow, 10}]

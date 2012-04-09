@@ -21,8 +21,7 @@
 
 -export([create_pool/3, delete_pool/1]).
 -export([get_connection/1, return_connection/2]).
-
-%% Work in progress.
+-export([run/3]).
 
 % @doc Create a new pool
 create_pool(Name, Size, Options) ->
@@ -39,3 +38,12 @@ get_connection(PoolName) ->
 % @doc And return it.
 return_connection(Worker, PoolName) ->
     poolboy:checkin(PoolName, Worker).
+
+% @doc 
+run(Sql, Props, PoolName) -> 
+    Conn = get_connection(PoolName),
+    Result = gen_server:call(Conn, {run, Sql, Props}),
+    return_connection(Conn, PoolName),
+    Result.
+
+
