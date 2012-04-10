@@ -21,7 +21,7 @@
 
 -export([create_pool/3, delete_pool/1]).
 -export([get_connection/1, return_connection/2]).
--export([run/3]).
+-export([run/3, execute/3, transaction/2]).
 
 % @doc Create a new pool
 create_pool(Name, Size, Options) ->
@@ -39,11 +39,20 @@ get_connection(PoolName) ->
 return_connection(Worker, PoolName) ->
     poolboy:checkin(PoolName, Worker).
 
-% @doc 
+% @doc Run a query with the props, returns nothing.
 run(Sql, Props, PoolName) -> 
+    with_connection(fun(Conn) -> gen_server:call(Conn, {run, Sql, Props}) end, PoolName).
+
+% @doc Execute a query with the props, returns the result.
+execute(Sql, Props, PoolName) -> 
+    with_connection(fun(Conn) -> gen_server:call(Conn, {execute, Sql, Props}) end, PoolName).
+
+% @doc Execute a transaction on the given pool.
+transaction(F, PoolName) ->
+    with_connection(fun(Conn) -> gen_server:call(Conn, {transaction, F}) end, PoolName).
+
+with_connection(F, PoolName) ->
     Conn = get_connection(PoolName),
-    Result = gen_server:call(Conn, {run, Sql, Props}),
+    Result = F(Conn),
     return_connection(Conn, PoolName),
     Result.
-
-

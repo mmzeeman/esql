@@ -49,6 +49,9 @@ handle_call({run, Sql, Params}, _From, #state{esql_connection=Conn}=State) ->
 handle_call({execute, Sql, Params}, _From, #state{esql_connection=Conn}=State) ->
     Result = esql:execute(Sql, Params, Conn),
     {reply, Result, State};
+handle_call({transaction, F}, _From, #state{esql_connection=Conn}=State) ->
+    Result = esql:transaction(F, Conn),
+    {reply, Result, State};
 handle_call(Message, _From, State) ->
     {stop, {unknown_call, Message}, State}.
 
