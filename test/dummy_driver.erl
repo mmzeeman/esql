@@ -79,7 +79,7 @@ execute(Query, Args, Pid) ->
     Pid ! {execute, Query, Args},
     ok.
 
-execute(Query, Args, ReceiverPid, Pid) ->
+execute(Query, Args, _ReceiverPid, Pid) ->
     Pid ! {execute, Query, Args},
     ok.
 

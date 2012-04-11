@@ -23,9 +23,25 @@
 -export([get_connection/1, return_connection/2]).
 -export([run/3, execute/3, transaction/2]).
 
+-export([open_esql_connection/1]).
+
 % @doc Create a new pool
 create_pool(Name, Size, Options) ->
-    esql_pool_sup:create_pool(Name, Size, Options).
+    Opts = case proplists:get_bool(serialized, Options) of
+        true ->
+            [{connection, open_esql_connection(Options)} | Options];
+        _ -> 
+            Options
+     end,
+     esql_pool_sup:create_pool(Name, Size, Opts).
+
+% @doc Open a esql connection with the values from the option list.
+%
+open_esql_connection(Options) ->
+    Driver = proplists:get_value(driver, Options),
+    Args = proplists:get_value(args, Options),
+    {ok, Connection} = esql:open(Driver, Args),
+    Connection.
 
 % @doc Delete the pool
 delete_pool(Name) ->

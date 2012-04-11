@@ -36,10 +36,11 @@ start_link(Opts) ->
 init(Opts) ->
     process_flag(trap_exit, true),
    
-    Driver = proplists:get_value(driver, Opts),
-    Args = proplists:get_value(args, Opts),
+    Connection = case proplists:get_value(connection, Opts) of
+        undefined -> esql_pool:open_esql_connection(Opts);
+        C -> C
+    end,
 
-    {ok, Connection} = esql:open(Driver, Args),
     {ok, #state{esql_connection=Connection}}.
 
 % @doc ...
