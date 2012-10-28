@@ -57,16 +57,23 @@ return_connection(Worker, PoolName) ->
 
 % @doc Run a query with the props, returns nothing.
 run(Sql, Props, PoolName) -> 
-    with_connection(fun(Conn) -> gen_server:call(Conn, {run, Sql, Props}) end, PoolName).
+    with_connection(fun(Conn) -> 
+        gen_server:call(Conn, {run, Sql, Props}) 
+    end, PoolName).
 
 % @doc Execute a query with the props, returns the result.
 execute(Sql, Props, PoolName) -> 
-    with_connection(fun(Conn) -> gen_server:call(Conn, {execute, Sql, Props}) end, PoolName).
+    with_connection(fun(Conn) -> 
+        gen_server:call(Conn, {execute, Sql, Props}) 
+    end, PoolName).
 
 % @doc Execute a transaction on the given pool.
 transaction(F, PoolName) ->
-    with_connection(fun(Conn) -> gen_server:call(Conn, {transaction, F}) end, PoolName).
+    with_connection(fun(Conn) -> 
+        gen_server:call(Conn, {transaction, F}) 
+    end, PoolName).
 
+% @doc 
 with_connection(F, PoolName) ->
     Conn = get_connection(PoolName),
     Result = F(Conn),

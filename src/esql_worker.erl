@@ -44,23 +44,29 @@ init(Opts) ->
     {ok, #state{esql_connection=Connection}}.
 
 % @doc ...
-handle_call({run, Sql, Params}, _From, #state{esql_connection=Conn}=State) ->
-    Result = esql:run(Sql, Params, Conn),
-    {reply, Result, State};
-handle_call({execute, Sql, Params}, _From, #state{esql_connection=Conn}=State) ->
-    Result = esql:execute(Sql, Params, Conn),
-    {reply, Result, State};
-handle_call({transaction, F}, _From, #state{esql_connection=Conn}=State) ->
-    Result = esql:transaction(F, Conn),
-    {reply, Result, State};
+handle_call({run, Sql, Params}, From, #state{esql_connection=Conn}=State) ->
+    spawn_link(fun() ->
+        gen_server:reply(From, esql:run(Sql, Params, Conn))
+    end),
+    {noreply, State};
+handle_call({execute, Sql, Params}, From, #state{esql_connection=Conn}=State) ->
+    spawn_link(fun() -> 
+        gen_server:reply(From, esql:execute(Sql, Params, Conn))
+    end),
+    {noreply, State};
+handle_call({transaction, F}, From, #state{esql_connection=Conn}=State) ->
+    spawn_link(fun() ->
+        gen_server:reply(From, esql:transaction(F, Conn))
+    end),
+    {noreply, State};
 handle_call(Message, _From, State) ->
     {stop, {unknown_call, Message}, State}.
 
-% @doc ..
+% @doc ...
 handle_cast(Message, State) ->
     {stop, {unknown_cast, Message}, State}.
 
-% @doc
+% @doc ...
 handle_info(stop, State) ->
     {stop, shutdown, State};
 handle_info({'EXIT', _, _}, State) ->
