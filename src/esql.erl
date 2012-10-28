@@ -22,14 +22,14 @@
 -export([behaviour_info/1]).
 
 -export([open/2, close/1, 
-	 transaction/2, 
-	 run/2, run/3, 
-	 execute/2, execute/3, 
+         transaction/2, 
+         run/2, run/3, 
+         execute/2, execute/3, 
          execute/4,
          step/1, 
-	 start_transaction/1, commit/1, rollback/1, 
-	 tables/1, describe_table/2, column_names/2, 
-	 call/2, call/3]).
+         start_transaction/1, commit/1, rollback/1, 
+         tables/1, describe_table/2, column_names/2, 
+         call/2, call/3]).
 
 -include("esql.hrl").
 
@@ -130,22 +130,22 @@ call(Function, Args, #esql_connection{driver=Driver, data=Data}) ->
 %% 
 transaction(F, Connection) ->
     try 
-	throw_error(fun start_transaction/1, Connection),
-	R = F(Connection),
-	throw_error(fun commit/1, Connection),
-	{ok, R}
+        throw_error(fun start_transaction/1, Connection),
+        R = F(Connection),
+        throw_error(fun commit/1, Connection),
+        {ok, R}
     catch 
-	_:Error ->
-	    throw_error(fun rollback/1, Connection),
-	    {rollback, Error}
+        _:Error ->
+            throw_error(fun rollback/1, Connection),
+            {rollback, Error}
     end.
 
 throw_error(F, Connection) ->
     case apply(F, [Connection]) of
-	ok ->
-	    ok;
-	{error, _} = Error ->
-	    throw(Error)
+        ok ->
+            ok;
+        {error, _} = Error ->
+            throw(Error)
     end.
 
     
