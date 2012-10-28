@@ -49,7 +49,7 @@ pool_test_() ->
                             ?assertMatch({ok, _Pid}, 
                                          esql_pool:create_pool(test_pool3, 10, [{driver, dummy_driver}, {args, []}])),
                             WorkerPid = poolboy:checkout(test_pool3),
-                            ?assertMatch(ok, poolboy:checkin(WorkerPid, test_pool3)),
+                            ?assertMatch(ok, poolboy:checkin(test_pool3, WorkerPid)),
                             esql_pool:delete_pool(test_pool3)
                     end
        },
