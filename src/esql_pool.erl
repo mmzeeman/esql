@@ -32,8 +32,8 @@ create_pool(Name, Size, Options) ->
             [{connection, open_esql_connection(Options)} | Options];
         _ -> 
             Options
-     end,
-     esql_pool_sup:create_pool(Name, Size, Opts).
+    end,
+    esql_pool_sup:create_pool(Name, Size, Opts).
 
 % @doc Open a esql connection with the values from the option list.
 %

@@ -26,7 +26,7 @@
 -export([start_link/1]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
--record(state, {esql_connection}).
+-record(state, {serialized, esql_connection}).
 
 % @doc Start the poolboy worker connection
 start_link(Opts) ->
@@ -41,20 +41,37 @@ init(Opts) ->
         C -> C
     end,
 
-    {ok, #state{esql_connection=Connection}}.
+    Serialized = proplists:get_value(serialized, Opts, false),
+
+    {ok, #state{serialized=Serialized, 
+        esql_connection=Connection}}.
 
 % @doc ...
-handle_call({run, Sql, Params}, From, #state{esql_connection=Conn}=State) ->
+handle_call({run, Sql, Params}, _From, 
+        #state{serialized=true, esql_connection=Conn}=State) ->
+    {reply, esql:run(Sql, Params, Conn), State};
+handle_call({run, Sql, Params}, From, 
+        #state{serialized=false, esql_connection=Conn}=State) ->
     spawn_link(fun() ->
         gen_server:reply(From, esql:run(Sql, Params, Conn))
     end),
     {noreply, State};
-handle_call({execute, Sql, Params}, From, #state{esql_connection=Conn}=State) ->
+
+handle_call({execute, Sql, Params}, _From, 
+        #state{serialized=true, esql_connection=Conn}=State) ->
+    {reply, esql:execute(Sql, Params, Conn), State};
+handle_call({execute, Sql, Params}, From, 
+        #state{serialized=false, esql_connection=Conn}=State) ->
     spawn_link(fun() -> 
         gen_server:reply(From, esql:execute(Sql, Params, Conn))
     end),
     {noreply, State};
-handle_call({transaction, F}, From, #state{esql_connection=Conn}=State) ->
+
+handle_call({transaction, F}, _From, 
+        #state{serialized=true, esql_connection=Conn}=State) ->
+    {reply, esql:transaction(F, Conn), State};
+handle_call({transaction, F}, From, 
+        #state{serialized=false, esql_connection=Conn}=State) ->
     spawn_link(fun() ->
         gen_server:reply(From, esql:transaction(F, Conn))
     end),
