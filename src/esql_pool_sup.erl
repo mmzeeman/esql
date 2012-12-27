@@ -24,7 +24,7 @@
 -behaviour(supervisor).
 
 -export([start_link/0]).
--export([create_pool/3, delete_pool/1]).
+-export([child_spec/3, create_pool/3, delete_pool/1]).
 
 -export([init/1]).
 
@@ -32,16 +32,20 @@
 start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
-% @doc Create a new connection pool
-create_pool(PoolName, Size, Options) ->
-    PoolSpec = {PoolName, {poolboy, start_link, [[{name, {local, PoolName}},
+% @doc Create a childspec for a new connection pool.
+child_spec(PoolName, Size, Options) ->
+    {PoolName, {poolboy, start_link, [[{name, {local, PoolName}},
                                                   {worker_module, esql_worker},
                                                   {size, Size},
                                                   {max_overflow, 10}]
                                                  ++ Options
                                                 ]},
-                permanent, 5000, worker, [poolboy, esql_worker]},
-    supervisor:start_child(?MODULE, PoolSpec). 
+                permanent, 5000, worker, [poolboy, esql_worker]}.
+
+
+% @doc Create a new connection pool
+create_pool(PoolName, Size, Options) ->
+    supervisor:start_child(?MODULE, child_spec(PoolName, Size, Options)). 
 
 % @doc Delete the specified connection pool.
 delete_pool(PoolName) ->

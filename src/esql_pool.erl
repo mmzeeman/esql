@@ -19,11 +19,15 @@
 
 -module(esql_pool).
 
--export([create_pool/3, delete_pool/1]).
+-export([child_spec/3, create_pool/3, delete_pool/1]).
 -export([get_connection/1, return_connection/2]).
 -export([run/3, execute/3, transaction/2]).
 
 -export([open_esql_connection/1]).
+
+% @doc Return a child spec. 
+child_spec(Name, Size, Options) ->
+    esql_pool_sup:child_spec(Name, Size, Options).
 
 % @doc Create a new pool
 create_pool(Name, Size, Options) ->
