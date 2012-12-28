@@ -31,6 +31,9 @@
          tables/1, describe_table/2, column_names/2, 
          call/2, call/3]).
 
+% higher level api...
+-export([map/3, map/4]).
+
 -include("esql.hrl").
 
 behaviour_info(callbacks) ->
@@ -140,11 +143,30 @@ transaction(F, Connection) ->
             {rollback, Error}
     end.
 
+%% 
+map(F, Sql, Connection) ->
+    map(F, Sql, [], Connection).
+
+map(F, Sql, Parameters, Connection) ->
+    %% Push this to the driver for a streaming api.
+    case execute(Sql, Parameters, Connection) of 
+        {ok, Names, Rows} ->
+            map_result(F, Names, Rows);
+        Other -> 
+            Other
+    end.
+
+map_result(F, _Names, Rows) when is_function(F, 1) ->
+    [F(Row) || Row <- Rows];
+map_result(F, Names, Rows) when is_function(F, 2) ->
+    [F(Names, Row) || Row <- Rows].
+
 throw_error(F, Connection) ->
     case apply(F, [Connection]) of
         ok -> ok;
         {error, _}=Error -> throw(Error)
     end.
+
 
 
     
