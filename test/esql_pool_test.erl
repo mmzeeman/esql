@@ -62,6 +62,32 @@ pool_test_() ->
             esql_pool:run("select * from something", [], test_pool4),
             esql_pool:delete_pool(test_pool4)
         end
+       },
+
+       {"transaction",
+        fun() -> 
+            ?assertMatch({ok, _Pid}, 
+                         esql_pool:create_pool(test_pool5, 10, [{driver, dummy_driver}, {args, []}])),
+            F = fun(C) ->
+                esql:run("select * from something", C),
+                esql:run("select * from something", C)
+            end,
+            esql_pool:transaction(F, test_pool5),
+            esql_pool:delete_pool(test_pool5)
+        end
+       },
+
+       {"apply_f",
+        fun() -> 
+            ?assertMatch({ok, _Pid}, 
+                         esql_pool:create_pool(test_pool6, 10, [{driver, dummy_driver}, {args, []}])),
+            F = fun(C) ->
+                esql:run("select * from something", C),
+                esql:run("select * from something", C)
+            end,
+            esql_pool:apply_f(F, test_pool6),
+            esql_pool:delete_pool(test_pool6)
+        end
        }
       ]
      }

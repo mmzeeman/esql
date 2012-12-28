@@ -142,10 +142,8 @@ transaction(F, Connection) ->
 
 throw_error(F, Connection) ->
     case apply(F, [Connection]) of
-        ok -> 
-            ok;
-        {error, _} = Error ->
-            throw(Error)
+        ok -> ok;
+        {error, _}=Error -> throw(Error)
     end.
 
 

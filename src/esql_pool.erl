@@ -63,27 +63,28 @@ return_connection(Worker, PoolName) ->
 run(Sql, Props, Connection) when is_pid(Connection) ->
     gen_server:call(Connection, {run, Sql, Props});
 run(Sql, Props, PoolName) -> 
-    with_connection(fun(Conn) -> run(Sql, Props, Conn) end, PoolName).
+    with_connection(fun(C) -> run(Sql, Props, C) end, PoolName).
 
 % @doc Execute a query with the props, returns the result.
 execute(Sql, Props, Connection) when is_pid(Connection) ->
     gen_server:call(Connection, {execute, Sql, Props});
 execute(Sql, Props, PoolName) -> 
-    with_connection(fun(Conn) -> execute(Sql, Props, Conn) end, PoolName).
+    with_connection(fun(C) -> execute(Sql, Props, C) end, PoolName).
 
 % @doc Execute a transaction on the given pool.
 transaction(F, Connection) when is_pid(Connection) ->
     gen_server:call(Connection, {transaction, F});
 transaction(F, PoolName) ->
-    with_connection(fun(Conn) -> transaction(F, Conn) end, PoolName).
+    with_connection(fun(C) -> transaction(F, C) end, PoolName).
 
-% @doc Execute a funtion on connection or take one from the pool. The function gets a esql connection.
+% @doc Execute a funtion on connection or take one from the pool. 
+% The function gets a esql connection.
 apply_f(F, Connection) when is_pid(Connection) ->
     gen_server:call(Connection, {apply_f, F});
 apply_f(F, PoolName) ->
-    with_connection(fun(Conn) -> apply_f(F, Conn) end, PoolName).
+    with_connection(fun(C) -> apply_f(F, C) end, PoolName).
 
-% @doc 
+% @doc Run the function 
 with_connection(F, PoolName) ->
     Conn = get_connection(PoolName),
     try
