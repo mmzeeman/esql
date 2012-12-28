@@ -23,16 +23,16 @@
 
 % esql callbacks
 -export([open/1,  
-	 close/1, 
-	 start_transaction/1, 
-	 commit/1, 
-	 rollback/1, 
-	 describe_table/2, 
-	 tables/1, 
-	 run/3, 
-	 execute/3, 
-	 execute/4,
-	 info/1]).
+         close/1, 
+         start_transaction/1, 
+         commit/1, 
+         rollback/1, 
+         describe_table/2, 
+         tables/1, 
+         run/3, 
+         execute/3, 
+         execute/4,
+         info/1]).
 
 -behaviour(esql).
 
@@ -44,13 +44,13 @@ open(_Args) ->
 
 connection_loop(#state{calls=Calls}=State) ->
     receive
-	stop ->
-	    ok;
-	{info, R} ->
-	    R ! lists:reverse(Calls);
-	Msg -> 
-	    Calls1 = [Msg | Calls],
-	    connection_loop(State#state{calls=Calls1})
+        stop ->
+            ok;
+        {info, R} ->
+            R ! lists:reverse(Calls);
+        Msg -> 
+            Calls1 = [Msg | Calls],
+            connection_loop(State#state{calls=Calls1})
     end.
 
 close(Pid) ->
@@ -91,6 +91,6 @@ run(Query, Args, Pid) ->
 info(Pid) ->
     Pid ! {info, self()},
     receive 
-	Msg -> Msg
+        Msg -> Msg
     end.
     

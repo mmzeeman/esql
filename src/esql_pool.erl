@@ -21,7 +21,7 @@
 
 -export([child_spec/3, create_pool/3, delete_pool/1]).
 -export([get_connection/1, return_connection/2]).
--export([run/3, execute/3, transaction/2]).
+-export([run/3, execute/3, transaction/2, apply_f/2]).
 
 -export([open_esql_connection/1]).
 
@@ -60,26 +60,34 @@ return_connection(Worker, PoolName) ->
     poolboy:checkin(PoolName, Worker).
 
 % @doc Run a query with the props, returns nothing.
+run(Sql, Props, Connection) when is_pid(Connection) ->
+    gen_server:call(Connection, {run, Sql, Props});
 run(Sql, Props, PoolName) -> 
-    with_connection(fun(Conn) -> 
-        gen_server:call(Conn, {run, Sql, Props}) 
-    end, PoolName).
+    with_connection(fun(Conn) -> run(Sql, Props, Conn) end, PoolName).
 
 % @doc Execute a query with the props, returns the result.
+execute(Sql, Props, Connection) when is_pid(Connection) ->
+    gen_server:call(Connection, {execute, Sql, Props});
 execute(Sql, Props, PoolName) -> 
-    with_connection(fun(Conn) -> 
-        gen_server:call(Conn, {execute, Sql, Props}) 
-    end, PoolName).
+    with_connection(fun(Conn) -> execute(Sql, Props, Conn) end, PoolName).
 
 % @doc Execute a transaction on the given pool.
+transaction(F, Connection) when is_pid(Connection) ->
+    gen_server:call(Connection, {transaction, F});
 transaction(F, PoolName) ->
-    with_connection(fun(Conn) -> 
-        gen_server:call(Conn, {transaction, F}) 
-    end, PoolName).
+    with_connection(fun(Conn) -> transaction(F, Conn) end, PoolName).
+
+% @doc Execute a funtion on connection or take one from the pool. The function gets a esql connection.
+apply_f(F, Connection) when is_pid(Connection) ->
+    gen_server:call(Connection, {apply_f, F});
+apply_f(F, PoolName) ->
+    with_connection(fun(Conn) -> apply_f(F, Conn) end, PoolName).
 
 % @doc 
 with_connection(F, PoolName) ->
     Conn = get_connection(PoolName),
-    Result = F(Conn),
-    return_connection(Conn, PoolName),
-    Result.
+    try
+        F(Conn)
+    after
+        return_connection(Conn, PoolName)
+    end.

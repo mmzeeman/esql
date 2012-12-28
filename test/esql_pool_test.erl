@@ -30,40 +30,40 @@ pool_test_() ->
 
        {"create a new pool",
         fun() -> 
-                            ?assertMatch({ok, _Pid}, 
-                                         esql_pool:create_pool(test_pool1, 10, [{driver, dummy_driver}, {args, []}])),
-                            esql_pool:delete_pool(test_pool1)
-                    end
+            ?assertMatch({ok, _Pid}, 
+                         esql_pool:create_pool(test_pool1, 10, [{driver, dummy_driver}, {args, []}])),
+            esql_pool:delete_pool(test_pool1)
+        end
        },
 
        {"pool with serialized connection",
         fun() -> 
-                            ?assertMatch({ok, _Pid}, 
-                                         esql_pool:create_pool(test_pool2, 10, [{serialized, true}, {driver, dummy_driver}, {args, []}])),
-                            esql_pool:delete_pool(test_pool2)
-                    end
+            ?assertMatch({ok, _Pid}, 
+                         esql_pool:create_pool(test_pool2, 10, [{serialized, true}, {driver, dummy_driver}, {args, []}])),
+            esql_pool:delete_pool(test_pool2)
+        end
        },
 
        {"checkout checkin (vise versa)",
         fun() -> 
-                            ?assertMatch({ok, _Pid}, 
-                                         esql_pool:create_pool(test_pool3, 10, [{driver, dummy_driver}, {args, []}])),
-                            WorkerPid = poolboy:checkout(test_pool3),
-                            ?assertMatch(ok, poolboy:checkin(test_pool3, WorkerPid)),
-                            esql_pool:delete_pool(test_pool3)
-                    end
+            ?assertMatch({ok, _Pid}, 
+                         esql_pool:create_pool(test_pool3, 10, [{driver, dummy_driver}, {args, []}])),
+            WorkerPid = poolboy:checkout(test_pool3),
+            ?assertMatch(ok, poolboy:checkin(test_pool3, WorkerPid)),
+            esql_pool:delete_pool(test_pool3)
+        end
        },
 
        {"simple queries",
         fun() -> 
-                            ?assertMatch({ok, _Pid}, 
-                                         esql_pool:create_pool(test_pool4, 10, [{driver, dummy_driver}, {args, []}])),
-                            esql_pool:run("select * from something", [], test_pool4),
-                            esql_pool:run("select * from something", [], test_pool4),
-                            esql_pool:delete_pool(test_pool4)
-                    end
+            ?assertMatch({ok, _Pid}, 
+                         esql_pool:create_pool(test_pool4, 10, [{driver, dummy_driver}, {args, []}])),
+            esql_pool:run("select * from something", [], test_pool4),
+            esql_pool:run("select * from something", [], test_pool4),
+            esql_pool:delete_pool(test_pool4)
+        end
        }
       ]
      }
     }.
-	
+    

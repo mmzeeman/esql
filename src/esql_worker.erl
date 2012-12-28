@@ -76,6 +76,14 @@ handle_call({transaction, F}, From,
         gen_server:reply(From, esql:transaction(F, Conn))
     end),
     {noreply, State};
+
+handle_call({apply_f, F}, _From, 
+        #state{serialized=true, esql_connection=Conn}=State) ->
+    {reply, F(Conn), State};
+handle_call({apply_f, F}, From, 
+        #state{serialized=false, esql_connection=Conn}=State) ->
+    spawn_link(fun() -> gen_server:reply(From, F(Conn)) end),
+    {noreply, State};
 handle_call(Message, _From, State) ->
     {stop, {unknown_call, Message}, State}.
 
