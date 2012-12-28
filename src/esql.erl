@@ -151,7 +151,7 @@ map(F, Sql, Parameters, Connection) ->
     %% Push this to the driver for a streaming api.
     case execute(Sql, Parameters, Connection) of 
         {ok, Names, Rows} ->
-            map_result(F, Names, Rows);
+            {ok, map_result(F, Names, Rows)};
         Other -> 
             Other
     end.
