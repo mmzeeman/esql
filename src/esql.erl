@@ -28,7 +28,7 @@
          execute/4,
          step/1, 
          start_transaction/1, commit/1, rollback/1, 
-         tables/1, describe_table/2, column_names/2, 
+         table_exists/2, tables/1, describe_table/2, column_names/2, 
          call/2, call/3]).
 
 % higher level api...
@@ -45,6 +45,7 @@ behaviour_info(callbacks) ->
      {run, 3}, 
      {execute, 3},
      {execute, 4},
+     {table_exists, 2},
      {tables, 1}, 
      {describe_table, 2}];
 behaviour_info(_Other) ->
@@ -74,7 +75,11 @@ commit(#esql_connection{driver=Driver, data=Data}) ->
 rollback(#esql_connection{driver=Driver, data=Data}) ->
     Driver:rollback(Data).
 
-%% @doc Return a list with tablenames...
+%% @doc Returns true iff the table with Name exists.
+table_exists(Name, #esql_connection{driver=Driver, data=Data}) ->
+    Driver:table_exists(Name, Data).
+
+%% @doc Return a list with tablenames.
 tables(#esql_connection{driver=Driver, data=Data}) ->
     Driver:tables(Data).
 
@@ -105,6 +110,7 @@ execute(Sql, Params, #esql_connection{driver=Driver, data=Data}) ->
 %% Returns {ok, Ref}
 %% Receiver, pid
 %% start... -> more , row -> more, row -> more, row, end...
+%% Experimental interface.
 execute(Sql, Params, Receiver, #esql_connection{driver=Driver, data=Data}) ->
     Driver:execute(Sql, Params, Receiver, Data).
 
@@ -143,7 +149,7 @@ transaction(F, Connection) ->
             {rollback, Error}
     end.
 
-%% 
+%% @doc 
 map(F, Sql, Connection) ->
     map(F, Sql, [], Connection).
 
@@ -166,7 +172,3 @@ throw_error(F, Connection) ->
         ok -> ok;
         {error, _}=Error -> throw(Error)
     end.
-
-
-
-    

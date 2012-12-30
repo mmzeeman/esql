@@ -27,6 +27,7 @@
          start_transaction/1, 
          commit/1, 
          rollback/1, 
+         table_exists/2,
          describe_table/2, 
          tables/1, 
          run/3, 
@@ -74,6 +75,11 @@ tables(_) ->
 
 describe_table(_Table, _Pid) ->
     undefined.
+
+table_exists("this_one_exists", _Pid) ->
+    true;
+table_exists(_Name, _Pid) ->
+    false.
 
 execute(Query, Args, Pid) ->
     Pid ! {execute, Query, Args},
