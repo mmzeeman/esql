@@ -84,13 +84,6 @@ execute1(Sql, Props, Connection) ->
 transaction(F, Connection) ->
     with_connection(fun(C) -> esql:transaction(F, C) end, Connection).
 
-% @doc Execute a funtion on connection or take one from the pool. 
-% The function gets a esql connection.
-% apply_f(F, Connection) when is_pid(Connection) ->
-%    gen_server:call(Connection, {with_connection, F});
-% apply_f(F, Name) ->
-%    with_connection(fun(C) -> apply_f(F, C) end, Name).
-
 % @doc Run the function
 with_connection(F, Connection) when is_pid(Connection) ->
     gen_server:call(Connection, {with_connection, F});
