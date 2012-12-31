@@ -24,14 +24,14 @@
 
 %% TODO: run, execute and execute1 can be removed.
 -export([run/3, execute/3, execute1/3, transaction/2]). 
+-export([table_exists/2, table_names/1]).
+
 -export([with_connection/2]).
 
 -export([open_esql_connection/1]).
 
-%
-% pool_connection
-%    pool   :: Name
-%    worker :: pid of the worker.
+-type name() :: atom() | string() | binary().
+-type connection() :: term().
 
 % @doc Return a child spec. 
 child_spec(Name, Size, Options) ->
@@ -84,6 +84,16 @@ execute1(Sql, Props, Connection) ->
 transaction(F, Connection) ->
     with_connection(fun(C) -> esql:transaction(F, C) end, Connection).
 
+% @doc Returns true iff a table with Name exists.
+-spec table_exists(name(), connection()) -> true | false.
+table_exists(Name, Connection) ->
+    with_connection(fun(C) -> esql:table_exists(Name, C) end, Connection).
+
+% @doc Returns a list with table names.
+-spec table_names(connection()) -> list(atom()).
+table_names(Connection) ->
+    with_connection(fun(C) -> esql:table_names(C) end, Connection).
+
 % @doc Run the function
 with_connection(F, Connection) when is_pid(Connection) ->
     gen_server:call(Connection, {with_connection, F});
@@ -91,7 +101,6 @@ with_connection(F, Name) ->
     Conn = get_connection(Name),
     try
         with_connection(F, Conn)
-        % F(Conn)
     after
         return_connection(Conn, Name)
     end.
