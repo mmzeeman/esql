@@ -52,56 +52,75 @@ behaviour_info(_Other) ->
     undefined.
 
 
-%% @doc Open a connection to a new database
+-type connection() :: tuple().
+-type driver() :: module().
+-type name() :: atom() | string() | binary().
+-type sql() :: iolist().
+-type description() :: term().
+
+%% @doc Open a connection to the database 
 %%
+-spec open(driver(), list()) -> {ok, connection()} | {error, _}.
 open(Driver, Args) ->
     {ok, Data} = Driver:open(Args),
     {ok, #esql_connection{driver=Driver, data=Data}}.
 
-%% @doc Close a database connection.
+%% @doc Close the connection.
 %%
+-spec close(connection()) -> ok | {error, _}.
 close(#esql_connection{driver=Driver, data=Data}) ->
     Driver:close(Data).
 
 %% @doc Start a transaction
+-spec start_transaction(connection()) -> ok | {error, _}.
 start_transaction(#esql_connection{driver=Driver, data=Data}) ->
     Driver:start_transaction(Data).
 
-%% @doc Commit all changes
+%% @doc Close the transaction and store all changes.
+-spec commit(connection()) -> ok | {error, _}.
 commit(#esql_connection{driver=Driver, data=Data}) ->
     Driver:commit(Data).
 
-%% @doc Rollback all changes
+%% @doc Close the transaction and rollback all changes.
+-spec rollback(connection()) -> ok | {error, _}.
 rollback(#esql_connection{driver=Driver, data=Data}) ->
     Driver:rollback(Data).
 
 %% @doc Returns true iff the table with Name exists.
+-spec table_exists(name(), connection()) -> true | false.
 table_exists(Name, #esql_connection{driver=Driver, data=Data}) ->
     Driver:table_exists(Name, Data).
 
 %% @doc Return a list with tablenames.
+-spec tables(connection()) -> list(atom()).
 tables(#esql_connection{driver=Driver, data=Data}) ->
     Driver:tables(Data).
 
-%% @doc 
+%% @doc Return a description of table Name.
+-spec describe_table(name(), connection()) -> description().
 describe_table(TableName, #esql_connection{driver=Driver, data=Data}) ->
     Driver:describe_table(TableName, Data).
 
-%% @doc
-column_names(TableName, Connection) ->
-    [Info#esql_column_info.name || Info <- describe_table(TableName, Connection) ].
+%% @doc Get the column names of table Name.
+-spec column_names(name(), connection()) -> list(atom()).
+column_names(Name, Connection) ->
+    [Info#esql_column_info.name || Info <- describe_table(Name, Connection)].
     
 %% @doc Execute the statement, without returning results.
+-spec run(sql(), connection()) -> ok | {error, _}.
 run(Sql, Connection) -> 
     run(Sql, [], Connection).
 
+-spec run(sql(), list(), connection()) -> ok | {error, _}.
 run(Sql, Params, #esql_connection{driver=Driver, data=Data}) ->
     Driver:run(Sql, Params, Data).
 
 %% @doc Execute the statement, return the result
+-spec execute(sql(), connection()) -> {ok, list(atom()), list(tuple)} | {error, _}.
 execute(Sql, Connection) ->
     execute(Sql, [], Connection).
 
+-spec execute(sql(), list(), connection()) -> {ok, list(atom()), list(tuple)} | {error, _}.
 execute(Sql, Params, #esql_connection{driver=Driver, data=Data}) ->
     Driver:execute(Sql, Params, Data).
 
