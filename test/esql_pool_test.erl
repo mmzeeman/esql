@@ -85,7 +85,7 @@ pool_test_() ->
                 esql:run("select * from something", C),
                 esql:run("select * from something", C)
             end,
-            esql_pool:apply_f(F, test_pool6),
+            esql_pool:with_connection(F, test_pool6),
             esql_pool:delete_pool(test_pool6)
         end
        }

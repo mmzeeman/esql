@@ -40,17 +40,7 @@ init(Opts) ->
     Connection = esql_pool:open_esql_connection(Opts),
     {ok, #state{esql_connection=Connection}}.
 
-% @doc ...
-handle_call({run, Sql, Params}, _From, #state{esql_connection=Conn}=State) ->
-    {reply, esql:run(Sql, Params, Conn), State};
-
-handle_call({execute, Sql, Params}, _From, #state{esql_connection=Conn}=State) ->
-    {reply, esql:execute(Sql, Params, Conn), State};
-
-handle_call({transaction, F}, _From, #state{esql_connection=Conn}=State) ->
-    {reply, esql:transaction(F, Conn), State};
-
-handle_call({apply_f, F}, _From, #state{esql_connection=Conn}=State) ->
+handle_call({with_connection, F}, _From, #state{esql_connection=Conn}=State) ->
     {reply, F(Conn), State};
 
 handle_call(Message, _From, State) ->

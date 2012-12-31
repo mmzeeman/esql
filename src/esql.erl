@@ -25,6 +25,7 @@
          transaction/2, 
          run/2, run/3, 
          execute/2, execute/3, 
+         execute1/2, execute1/3,
          execute/4,
          step/1, 
          start_transaction/1, commit/1, rollback/1, 
@@ -51,6 +52,7 @@ behaviour_info(callbacks) ->
 behaviour_info(_Other) ->
     undefined.
 
+%% Some type definitions.
 
 -type connection() :: tuple().
 -type driver() :: module().
@@ -120,9 +122,29 @@ run(Sql, Params, #esql_connection{driver=Driver, data=Data}) ->
 execute(Sql, Connection) ->
     execute(Sql, [], Connection).
 
+%% @doc Apply the parameters and execute the statement, return the result
 -spec execute(sql(), list(), connection()) -> {ok, list(atom()), list(tuple)} | {error, _}.
 execute(Sql, Params, #esql_connection{driver=Driver, data=Data}) ->
     Driver:execute(Sql, Params, Data).
+
+% @doc
+-spec execute1(sql(), connection()) -> {ok, list(atom()), list(tuple)} | {error, _}.
+execute1(Sql, Connection) ->
+    execute1(Sql, [], Connection).
+
+% @doc
+-spec execute1(sql(), list(), connection()) -> {ok, list(atom()), list(tuple)} | {error, _}.
+execute1(Sql, Params, #esql_connection{driver=Driver, data=Data}) ->
+    case Driver:execute(Sql, Params, Data) of
+        {ok, _Columns, []} -> 
+            {error, noresult};
+        {ok, _Columns, [Row|_]} -> 
+            {ok, Row};
+        {error, _}=Error ->
+            Error
+    end.
+
+%% Experimental....
 
 %% @doc Execute the statement, and return the rows, one by one to the receiver.
 %% Testing if this is a good api for asynchronous returning query results.

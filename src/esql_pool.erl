@@ -21,9 +21,17 @@
 
 -export([child_spec/3, create_pool/3, delete_pool/1]).
 -export([get_connection/1, return_connection/2]).
--export([run/3, execute/3, transaction/2, apply_f/2]).
+
+%% TODO: run, execute and execute1 can be removed.
+-export([run/3, execute/3, execute1/3, transaction/2]). 
+-export([with_connection/2]).
 
 -export([open_esql_connection/1]).
+
+%
+% pool_connection
+%    pool   :: Name
+%    worker :: pid of the worker.
 
 % @doc Return a child spec. 
 child_spec(Name, Size, Options) ->
@@ -52,6 +60,7 @@ delete_pool(Name) ->
     esql_pool_sup:delete_pool(Name).
 
 % @doc Get a database connection.
+%
 get_connection(PoolName) ->
     poolboy:checkout(PoolName).
 
@@ -60,35 +69,36 @@ return_connection(Worker, PoolName) ->
     poolboy:checkin(PoolName, Worker).
 
 % @doc Run a query with the props, returns nothing.
-run(Sql, Props, Connection) when is_pid(Connection) ->
-    gen_server:call(Connection, {run, Sql, Props});
-run(Sql, Props, PoolName) -> 
-    with_connection(fun(C) -> run(Sql, Props, C) end, PoolName).
+run(Sql, Props, Connection) ->
+    with_connection(fun(C) -> esql:run(Sql, Props, C) end, Connection).
 
 % @doc Execute a query with the props, returns the result.
-execute(Sql, Props, Connection) when is_pid(Connection) ->
-    gen_server:call(Connection, {execute, Sql, Props});
-execute(Sql, Props, PoolName) -> 
-    with_connection(fun(C) -> execute(Sql, Props, C) end, PoolName).
+execute(Sql, Props, Connection) ->
+    with_connection(fun(C) -> esql:execute(Sql, Props, C) end, Connection).
+
+% @doc Execute a query with the props, returns the result.
+execute1(Sql, Props, Connection) ->
+    with_connection(fun(C) -> esql:execute1(Sql, Props, C) end, Connection).
 
 % @doc Execute a transaction on the given pool.
-transaction(F, Connection) when is_pid(Connection) ->
-    gen_server:call(Connection, {transaction, F});
-transaction(F, PoolName) ->
-    with_connection(fun(C) -> transaction(F, C) end, PoolName).
+transaction(F, Connection) ->
+    with_connection(fun(C) -> esql:transaction(F, C) end, Connection).
 
 % @doc Execute a funtion on connection or take one from the pool. 
 % The function gets a esql connection.
-apply_f(F, Connection) when is_pid(Connection) ->
-    gen_server:call(Connection, {apply_f, F});
-apply_f(F, PoolName) ->
-    with_connection(fun(C) -> apply_f(F, C) end, PoolName).
+% apply_f(F, Connection) when is_pid(Connection) ->
+%    gen_server:call(Connection, {with_connection, F});
+% apply_f(F, Name) ->
+%    with_connection(fun(C) -> apply_f(F, C) end, Name).
 
-% @doc Run the function 
-with_connection(F, PoolName) ->
-    Conn = get_connection(PoolName),
+% @doc Run the function
+with_connection(F, Connection) when is_pid(Connection) ->
+    gen_server:call(Connection, {with_connection, F});
+with_connection(F, Name) ->
+    Conn = get_connection(Name),
     try
-        F(Conn)
+        with_connection(F, Conn)
+        % F(Conn)
     after
-        return_connection(Conn, PoolName)
+        return_connection(Conn, Name)
     end.

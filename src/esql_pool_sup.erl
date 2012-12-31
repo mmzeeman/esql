@@ -48,9 +48,11 @@ create_pool(PoolName, Size, Options) ->
     supervisor:start_child(?MODULE, child_spec(PoolName, Size, Options)). 
 
 % @doc Delete the specified connection pool.
-delete_pool(PoolName) ->
-    supervisor:terminate_child(?MODULE, PoolName),
-    supervisor:delete_child(?MODULE, PoolName).  
+delete_pool(Name) ->
+    case supervisor:terminate_child(?MODULE, Name) of
+        ok -> supervisor:delete_child(?MODULE, Name);
+        {error, _}=Error -> Error
+    end.  
 
 % @doc Initialize an empty supervisor waiting for new pools.
 init([]) ->
