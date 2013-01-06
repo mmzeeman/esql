@@ -180,14 +180,17 @@ call(Function, Args, #esql_connection{driver=Driver, data=Data}) ->
 %% 
 transaction(F, Connection) ->
     try 
+        % Catch start_transaction, transaction function 
+        % and commit errors...
         throw_error(fun start_transaction/1, Connection),
-        R = F(Connection),
+        Result = F(Connection),
         throw_error(fun commit/1, Connection),
-        {ok, R}
+        {ok, Result}
     catch 
         _:Error ->
+            %% But throw rollback errors.
             throw_error(fun rollback/1, Connection),
-            {rollback, Error}
+            {rollback, {Error, erlang:get_stacktrace()}}
     end.
 
 %% @doc 

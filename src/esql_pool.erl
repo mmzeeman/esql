@@ -20,7 +20,7 @@
 -module(esql_pool).
 
 -export([child_spec/3, create_pool/3, delete_pool/1]).
--export([get_connection/1, return_connection/2]).
+-export([get_connection/1, get_connection/2, return_connection/2]).
 
 %% TODO: run, execute and execute1 can be removed.
 -export([run/3, execute/3, execute1/3, transaction/2]). 
@@ -29,6 +29,8 @@
 -export([with_connection/2]).
 
 -export([open_esql_connection/1]).
+
+-define(TIMEOUT, 5000).
 
 -type name() :: atom() | string() | binary().
 -type connection() :: term().
@@ -61,12 +63,18 @@ delete_pool(Name) ->
 
 % @doc Get a database connection.
 %
-get_connection(PoolName) ->
-    poolboy:checkout(PoolName).
+-spec get_connection(name()) -> pid() | full.
+get_connection(Name) ->
+    get_connection(Name, ?TIMEOUT).
+
+-spec get_connection(name(), timeout()) -> pid() | full.
+get_connection(PoolName, Timeout) ->
+    poolboy:checkout(PoolName, true, Timeout).
 
 % @doc And return it.
+-spec return_connection(pid(), name()) -> ok.
 return_connection(Worker, PoolName) ->
-    poolboy:checkin(PoolName, Worker).
+    ok = poolboy:checkin(PoolName, Worker).
 
 % @doc Run a query with the props, returns nothing.
 run(Sql, Props, Connection) ->
@@ -95,12 +103,27 @@ table_names(Connection) ->
     with_connection(fun(C) -> esql:table_names(C) end, Connection).
 
 % @doc Run the function
-with_connection(F, Connection) when is_pid(Connection) ->
-    gen_server:call(Connection, {with_connection, F});
-with_connection(F, Name) ->
-    Conn = get_connection(Name),
-    try
-        with_connection(F, Conn)
-    after
-        return_connection(Conn, Name)
+with_connection(F, Connection) ->
+    with_connection(F, Connection, ?TIMEOUT).
+
+with_connection(F, Connection, Timeout) when is_pid(Connection) ->
+    gen_server:call(Connection, {with_connection, F}, Timeout);
+with_connection(F, Name, Timeout) ->
+    Start = os:timestamp(),
+    case get_connection(Name, Timeout) of
+        full ->
+            {error, pool_full};
+        Conn ->
+            try
+                with_connection(F, Conn, rest_timeout(Start, Timeout))
+            after
+                return_connection(Conn, Name)
+            end
+    end.
+
+rest_timeout(StartTime, TotalTimeout) ->
+    MsecsPassed = timer:now_diff(os:timestamp(), StartTime) div 1000,
+    case TotalTimeout - MsecsPassed of
+        Rest when Rest =< 0 -> throw({error, timeout});
+        Rest -> Rest
     end.
